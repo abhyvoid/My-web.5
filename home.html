@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Web 4.0</title>
+  <style>
+    :root {
+      --bg-light: #f5f5f5;
+      --bg-dark: #1e1e1e;
+      --text-light: #333;
+      --text-dark: #eee;
+      --card: #fff;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg-light);
+      color: var(--text-light);
+      transition: 0.3s;
+    }
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: sticky; top: 0; z-index: 10;
+    }
+    header img { width:40px; height:40px; border-radius:50%; }
+    .brand { font-weight:bold; display:flex; align-items:center; gap:10px; }
+    .menu button {
+      font-size: 22px; background: none; border: none; cursor: pointer;
+    }
+    .dropdown {
+      display: none; position: absolute; right: 10px; top: 55px;
+      background: #fff; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .dropdown a, .dropdown button {
+      display:block; padding:10px; text-decoration:none; border:none; background:none; cursor:pointer; text-align:left;
+    }
+    .dropdown a:hover, .dropdown button:hover { background:#eee; }
+    .card {
+      max-width:600px; margin:20px auto; padding:15px;
+      background: var(--card); border-radius:10px;
+      box-shadow:0 2px 5px rgba(0,0,0,0.1);
+    }
+    .post { margin-top:10px; padding:10px; border:1px solid #ccc; border-radius:8px; }
+    .fab {
+      position: fixed; bottom: 20px; right: 20px;
+      background:#ff5722; color:#fff; border:none; border-radius:50%;
+      width:55px; height:55px; font-size:28px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 4px 8px rgba(0,0,0,0.2);
+    }
+    .social a { margin-right: 10px; text-decoration:none; color:#2196f3; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand"><img src="https://i.imgur.com/4AiXzf8.jpeg" alt="">My Web 4.0</div>
+    <div class="menu">
+      <button onclick="toggleMenu()">☰</button>
+      <div id="dropdown" class="dropdown">
+        <a href="#">Home</a>
+        <a href="https://instagram.com/abhay___r" target="_blank">Instagram</a>
+        <a href="https://snapchat.com/add/abhayr38" target="_blank">Snapchat</a>
+        <a href="https://github.com/abhyvoid" target="_blank">Repo</a>
+        <button onclick="logout()">Logout</button>
+        <button onclick="toggleDark()">🌙 Dark Mode</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <h2 style="text-align:center;">Welcome 🎉</h2>
+
+    <!-- Create post -->
+    <div class="card" id="createPostBox" style="display:none;">
+      <h3>Create a new post ✍️</h3>
+      <textarea id="postText" rows="3" style="width:100%;"></textarea><br>
+      <input type="text" id="imageUrl" placeholder="Image URL (optional)" style="width:100%; margin-top:5px;">
+      <button onclick="addPost()">Post</button>
+    </div>
+
+    <!-- Posts -->
+    <div id="posts"></div>
+  </main>
+
+  <!-- Floating Button -->
+  <button class="fab" onclick="toggleCreate()">+</button>
+
+  <script type="module">
+    import { auth, onAuthStateChanged, signOut, db, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } 
+    from "./firebase.js";
+
+    const dropdown = document.getElementById('dropdown');
+    function toggleMenu(){ dropdown.style.display = dropdown.style.display==='block'?'none':'block'; }
+
+    function toggleDark(){ document.body.classList.toggle("dark"); }
+
+    function logout(){ signOut(auth).then(()=>location.href="index.html"); }
+
+    const postsDiv = document.getElementById("posts");
+    const createBox = document.getElementById("createPostBox");
+    function toggleCreate(){ createBox.style.display = createBox.style.display==="none"?"block":"none"; }
+
+    async function addPost(){
+      const text = document.getElementById("postText").value;
+      const img = document.getElementById("imageUrl").value;
+      if(!text) return alert("Write something!");
+      try {
+        await addDoc(collection(db,"posts"), {text, img, time:new Date()});
+        document.getElementById("postText").value="";
+        document.getElementById("imageUrl").value="";
+      } catch(e){ alert("Error: "+e.message); }
+    }
+
+    function loadPosts(){
+      const q = query(collection(db,"posts"), orderBy("time","desc"));
+      onSnapshot(q, snap=>{
+        postsDiv.innerHTML="";
+        snap.forEach(docSnap=>{
+          const d=docSnap.data();
+          const post=document.createElement("div");
+          post.className="post";
+          post.innerHTML=`<p>${d.text}</p>${d.img?`<img src="${d.img}" style="max-width:100%;border-radius:8px;">`:""}
+            <button onclick="deletePost('${docSnap.id}')">Delete</button>`;
+          postsDiv.appendChild(post);
+        });
+      });
+    }
+
+    window.deletePost=async(id)=>{ 
+      if(confirm("Delete this post?")) await deleteDoc(doc(db,"posts",id));
+    }
+
+    onAuthStateChanged(auth,user=>{
+      if(user) loadPosts(); else location.href="index.html";
+    });
+  </script>
+</body>
+</html>
