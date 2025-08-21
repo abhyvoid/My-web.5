@@ -3,48 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - My Web 4.0</title>
+  <title>Login</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="light">
   <div class="login-container">
-    <h2>Login</h2>
+    <h2>Welcome 👋</h2>
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Password">
-    <button onclick="login()">Login</button>
-    <p>Don’t have an account? <button onclick="signup()">Sign Up</button></p>
+    <button id="loginBtn">Login</button>
+    <p id="errorMsg" class="error"></p>
   </div>
 
   <script type="module">
-    import { auth } from "./firebase.js";
-    import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } 
-      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { auth, signInWithEmailAndPassword, onAuthStateChanged } from "./firebase.js";
 
-    // Login
-    window.login = async function () {
+    const loginBtn = document.getElementById("loginBtn");
+    const errorMsg = document.getElementById("errorMsg");
+
+    loginBtn.addEventListener("click", async () => {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       try {
         await signInWithEmailAndPassword(auth, email, password);
         window.location.href = "home.html";
       } catch (err) {
-        alert(err.message);
+        errorMsg.textContent = "❌ " + err.message;
       }
-    };
+    });
 
-    // Signup
-    window.signup = async function () {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("Account created, now login!");
-      } catch (err) {
-        alert(err.message);
-      }
-    };
-
-    // Redirect if already logged in
     onAuthStateChanged(auth, (user) => {
       if (user) {
         window.location.href = "home.html";
