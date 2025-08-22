@@ -1,34 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | My Web</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body class="light">
   <div class="login-container">
-    <h2>Welcome 👋</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button id="loginBtn">Login</button>
-    <p id="errorMsg" class="error"></p>
+    <h1>Welcome</h1>
+    <button id="googleLogin" class="btn">Sign in with Google</button>
   </div>
 
   <script type="module">
-    import { auth, signInWithEmailAndPassword, onAuthStateChanged } from "./firebase.js";
+    import { auth, provider, signInWithPopup, onAuthStateChanged } from "./firebase.js";
 
-    const loginBtn = document.getElementById("loginBtn");
-    const errorMsg = document.getElementById("errorMsg");
+    const loginBtn = document.getElementById("googleLogin");
 
     loginBtn.addEventListener("click", async () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
       try {
-        await signInWithEmailAndPassword(auth, email, password);
-        window.location.href = "home.html";
+        await signInWithPopup(auth, provider);
       } catch (err) {
-        errorMsg.textContent = "❌ " + err.message;
+        alert("Login failed: " + err.message);
       }
     });
 
