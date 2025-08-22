@@ -1,35 +1,40 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login | My Web</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Login • My Web</title>
+<link rel="stylesheet" href="style.css" />
+<script type="module">
+  import { auth, onAuthStateChanged, signInWithEmailAndPassword } from './firebase.js';
+
+  // If already logged in, go to home
+  onAuthStateChanged(auth, (user) => {
+    if (user) location.replace('home.html');
+  });
+
+  window.handleLogin = async () => {
+    const email = document.getElementById('email').value.trim();
+    const pass  = document.getElementById('password').value.trim();
+    const btn   = document.getElementById('loginBtn');
+    if (!email || !pass) { alert("Enter email and password."); return; }
+    btn.disabled = true;
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      // onAuthStateChanged will redirect
+    } catch (e) {
+      alert(e.message.replace("Firebase:", "").trim());
+      btn.disabled = false;
+    }
+  };
+</script>
 </head>
-<body class="light">
-  <div class="login-container">
-    <h1>Welcome</h1>
-    <button id="googleLogin" class="btn">Sign in with Google</button>
+<body class="auth-body">
+  <div class="card auth-card">
+    <h1 class="title">Sign in</h1>
+    <input id="email" type="email" placeholder="Email" class="input"/>
+    <input id="password" type="password" placeholder="Password" class="input"/>
+    <button id="loginBtn" class="btn primary" onclick="handleLogin()">Login</button>
   </div>
-
-  <script type="module">
-    import { auth, provider, signInWithPopup, onAuthStateChanged } from "./firebase.js";
-
-    const loginBtn = document.getElementById("googleLogin");
-
-    loginBtn.addEventListener("click", async () => {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (err) {
-        alert("Login failed: " + err.message);
-      }
-    });
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        window.location.href = "home.html";
-      }
-    });
-  </script>
 </body>
 </html>
