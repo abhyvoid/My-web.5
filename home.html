@@ -66,22 +66,34 @@
     const closeModal = document.getElementById("closeModal");
     const logoutBtn = document.getElementById("logoutBtn");
     const darkModeToggle = document.getElementById("darkModeToggle");
+    const menuBtn = document.getElementById("menuBtn");
+    const sideMenu = document.getElementById("sideMenu");
 
-    // Track current user
     let currentUser = null;
+
+    // ✅ Auth guard
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
         loadPosts();
         if (user.email !== "abhayrangappanvat@gmail.com") {
-          addPostBtn.style.display = "none"; // hide for others
+          addPostBtn.style.display = "none"; 
         }
       } else {
-        window.location.href = "index.html";
+        window.location.href = "index.html"; // redirect if not logged in
       }
     });
 
-    // Load posts realtime
+    // ✅ Toggle menu
+    menuBtn.addEventListener("click", () => {
+      sideMenu.classList.toggle("hidden");
+    });
+
+    // ✅ Modal toggle
+    addPostBtn.addEventListener("click", () => postModal.classList.remove("hidden"));
+    closeModal.addEventListener("click", () => postModal.classList.add("hidden"));
+
+    // Load posts
     function loadPosts() {
       onSnapshot(collection(db, "posts"), (snapshot) => {
         postsDiv.innerHTML = "";
@@ -104,20 +116,17 @@
             </div>
           `;
 
-          // Show delete button only for you
           if (currentUser?.email === "abhayrangappanvat@gmail.com") {
             postDiv.innerHTML += `<button class="deleteBtn" data-id="${docSnap.id}" data-image="${post.image || ""}">🗑 Delete</button>`;
           }
 
           postsDiv.prepend(postDiv);
-
-          // Load comments
           loadComments(docSnap.id);
         });
       });
     }
 
-    // Load comments realtime for each post
+    // Load comments
     function loadComments(postId) {
       onSnapshot(collection(db, "posts", postId, "comments"), (snapshot) => {
         const commentsDiv = document.getElementById(`comments-${postId}`);
@@ -131,15 +140,10 @@
       });
     }
 
-    // Open/close modal
-    addPostBtn.addEventListener("click", () => postModal.classList.remove("hidden"));
-    closeModal.addEventListener("click", () => postModal.classList.add("hidden"));
-
     // Save new post
     savePost.addEventListener("click", async () => {
       const text = document.getElementById("postText").value;
       const file = document.getElementById("postImageFile").files[0];
-
       if (!text && !file) return;
 
       let imageUrl = "";
@@ -163,15 +167,13 @@
       document.getElementById("postImageFile").value = "";
     });
 
-    // Delete post (text + image)
+    // Delete post
     document.addEventListener("click", async (e) => {
       if (e.target.classList.contains("deleteBtn")) {
         const id = e.target.getAttribute("data-id");
         const imageUrl = e.target.getAttribute("data-image");
-
         if (confirm("Are you sure you want to delete this post?")) {
           await deleteDoc(doc(db, "posts", id));
-
           if (imageUrl) {
             try {
               const path = decodeURIComponent(new URL(imageUrl).pathname.split("/o/")[1].split("?")[0]);
