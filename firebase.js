@@ -1,19 +1,17 @@
-// firebase.js  (CDN, ES Modules — works on GitHub Pages)
+// ---- Firebase (v9 modular) ----
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import {
+  getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc,
+  serverTimestamp, query, orderBy, arrayUnion, arrayRemove
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import {
+  getStorage, ref, uploadBytes, getDownloadURL, deleteObject, ref as refFromURL
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
-// Firebase v10 CDN imports
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {
-  getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot,
-  updateDoc, arrayUnion, arrayRemove, query, orderBy, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {
-  getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
-// ✅ Your real Firebase config
+// Your config (as you gave)
 const firebaseConfig = {
   apiKey: "AIzaSyBjSQoODv0AoPsExhsbLrYTyP90LOJX_9Y",
   authDomain: "my-web4o.firebaseapp.com",
@@ -23,17 +21,15 @@ const firebaseConfig = {
   appId: "1:226593866449:web:adbdf758ed4810d8d9fbf0"
 };
 
-// Init
-const app      = initializeApp(firebaseConfig);
-const auth     = getAuth(app);
-const provider = new GoogleAuthProvider();
-const db       = getFirestore(app);
-const storage  = getStorage(app);
+export const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 
-// Re-exports
+// Re-exports so other files can import from one place
 export {
-  app, auth, provider, signInWithPopup, signOut, onAuthStateChanged,
-  db, collection, addDoc, deleteDoc, doc, onSnapshot,
-  updateDoc, arrayUnion, arrayRemove, query, orderBy, serverTimestamp,
-  storage, storageRef, uploadBytes, getDownloadURL, deleteObject
+  onAuthStateChanged, signInWithEmailAndPassword, signOut,
+  collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc,
+  serverTimestamp, query, orderBy, arrayUnion, arrayRemove,
+  ref, uploadBytes, getDownloadURL, deleteObject, refFromURL
 };
