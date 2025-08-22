@@ -7,114 +7,229 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="light">
+  <!-- Header -->
   <header>
-    <div class="menu-btn">☰</div>
-    <h2>My Mini-Medium</h2>
-    <button id="darkToggle">🌙</button>
+    <h1>Mini-Medium 🚀</h1>
+    <button id="menuBtn">☰</button>
   </header>
 
-  <nav id="menu" class="hidden">
-    <button id="logoutBtn">🚪 Logout</button>
-    <a href="https://instagram.com/abhay___r" target="_blank">📸 Instagram</a>
-    <a href="https://snapchat.com/add/abhayr38" target="_blank">👻 Snapchat</a>
-    <a href="https://github.com/abhyvoid/My-web.5" target="_blank">💻 GitHub Repo</a>
+  <!-- Slide-out menu -->
+  <nav id="sideMenu" class="hidden">
+    <button id="logoutBtn">Logout</button>
+    <a href="https://instagram.com/abhay___r" target="_blank">Instagram</a>
+    <a href="https://snapchat.com/add/abhayr38" target="_blank">Snapchat</a>
+    <a href="https://github.com/your-repo" target="_blank">GitHub</a>
+    <button id="darkModeToggle">🌙 Toggle Dark</button>
   </nav>
 
+  <!-- Posts container -->
   <main id="posts"></main>
 
-  <button id="addPostBtn">＋</button>
+  <!-- Floating add post button (only visible to you) -->
+  <button id="addPostBtn" class="fab">＋</button>
 
   <!-- Modal for adding post -->
   <div id="postModal" class="modal hidden">
     <textarea id="postText" placeholder="Write something..."></textarea>
-    <input type="text" id="postImage" placeholder="Image URL (optional)">
+    <input type="file" id="postImageFile" accept="image/*">
     <button id="savePost">Post</button>
     <button id="closeModal">Cancel</button>
   </div>
 
+  <!-- Firebase & Script -->
   <script type="module">
-    import { auth, onAuthStateChanged, signOut, db, doc, setDoc, onSnapshot } from "./firebase.js";
+    import { 
+      auth, 
+      onAuthStateChanged, 
+      signOut, 
+      db, 
+      doc, 
+      setDoc, 
+      deleteDoc, 
+      onSnapshot, 
+      collection, 
+      addDoc,
+      storage, 
+      ref, 
+      uploadBytes, 
+      getDownloadURL, 
+      deleteObject, 
+      updateDoc, 
+      increment,
+      serverTimestamp 
+    } from "./firebase.js";
 
-    const logoutBtn = document.getElementById("logoutBtn");
+    const postsDiv = document.getElementById("posts");
+    const postModal = document.getElementById("postModal");
     const addPostBtn = document.getElementById("addPostBtn");
     const savePost = document.getElementById("savePost");
     const closeModal = document.getElementById("closeModal");
-    const postModal = document.getElementById("postModal");
-    const postsDiv = document.getElementById("posts");
-    const menuBtn = document.querySelector(".menu-btn");
-    const menu = document.getElementById("menu");
-    const darkToggle = document.getElementById("darkToggle");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const darkModeToggle = document.getElementById("darkModeToggle");
 
-    // Auth guard
+    // Track current user
+    let currentUser = null;
     onAuthStateChanged(auth, (user) => {
-      if (!user) {
+      if (user) {
+        currentUser = user;
+        loadPosts();
+        if (user.email !== "abhayrangappanvat@gmail.com") {
+          addPostBtn.style.display = "none"; // hide for others
+        }
+      } else {
         window.location.href = "index.html";
+      }
+    });
+
+    // Load posts realtime
+    function loadPosts() {
+      onSnapshot(collection(db, "posts"), (snapshot) => {
+        postsDiv.innerHTML = "";
+        snapshot.forEach((docSnap) => {
+          const post = docSnap.data();
+          let postDiv = document.createElement("div");
+          postDiv.className = "post";
+
+          postDiv.innerHTML = `
+            <p>${post.text || ""}</p>
+            ${post.image ? `<img src="${post.image}" alt="post image">` : ""}
+            <div class="post-actions">
+              <button class="likeBtn" data-id="${docSnap.id}">❤️ ${post.likes || 0}</button>
+              <button class="commentBtn" data-id="${docSnap.id}">💬 Comment</button>
+            </div>
+            <div class="comments" id="comments-${docSnap.id}"></div>
+            <div class="commentInput hidden" id="commentInput-${docSnap.id}">
+              <input type="text" placeholder="Write a comment..." id="commentText-${docSnap.id}">
+              <button class="submitComment" data-id="${docSnap.id}">Post</button>
+            </div>
+          `;
+
+          // Show delete button only for you
+          if (currentUser?.email === "abhayrangappanvat@gmail.com") {
+            postDiv.innerHTML += `<button class="deleteBtn" data-id="${docSnap.id}" data-image="${post.image || ""}">🗑 Delete</button>`;
+          }
+
+          postsDiv.prepend(postDiv);
+
+          // Load comments
+          loadComments(docSnap.id);
+        });
+      });
+    }
+
+    // Load comments realtime for each post
+    function loadComments(postId) {
+      onSnapshot(collection(db, "posts", postId, "comments"), (snapshot) => {
+        const commentsDiv = document.getElementById(`comments-${postId}`);
+        commentsDiv.innerHTML = "";
+        snapshot.forEach((docSnap) => {
+          const c = docSnap.data();
+          const p = document.createElement("p");
+          p.textContent = `${c.user}: ${c.text}`;
+          commentsDiv.appendChild(p);
+        });
+      });
+    }
+
+    // Open/close modal
+    addPostBtn.addEventListener("click", () => postModal.classList.remove("hidden"));
+    closeModal.addEventListener("click", () => postModal.classList.add("hidden"));
+
+    // Save new post
+    savePost.addEventListener("click", async () => {
+      const text = document.getElementById("postText").value;
+      const file = document.getElementById("postImageFile").files[0];
+
+      if (!text && !file) return;
+
+      let imageUrl = "";
+      if (file) {
+        const storageRef = ref(storage, "posts/" + Date.now() + "_" + file.name);
+        await uploadBytes(storageRef, file);
+        imageUrl = await getDownloadURL(storageRef);
+      }
+
+      const id = Date.now().toString();
+      await setDoc(doc(db, "posts", id), {
+        text,
+        image: imageUrl,
+        likes: 0,
+        createdAt: serverTimestamp(),
+        user: auth.currentUser.email
+      });
+
+      postModal.classList.add("hidden");
+      document.getElementById("postText").value = "";
+      document.getElementById("postImageFile").value = "";
+    });
+
+    // Delete post (text + image)
+    document.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("deleteBtn")) {
+        const id = e.target.getAttribute("data-id");
+        const imageUrl = e.target.getAttribute("data-image");
+
+        if (confirm("Are you sure you want to delete this post?")) {
+          await deleteDoc(doc(db, "posts", id));
+
+          if (imageUrl) {
+            try {
+              const path = decodeURIComponent(new URL(imageUrl).pathname.split("/o/")[1].split("?")[0]);
+              const imageRef = ref(storage, path);
+              await deleteObject(imageRef);
+            } catch (err) {
+              console.error("Error deleting image:", err);
+            }
+          }
+        }
+      }
+    });
+
+    // Like post
+    document.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("likeBtn")) {
+        const id = e.target.getAttribute("data-id");
+        const postRef = doc(db, "posts", id);
+        await updateDoc(postRef, { likes: increment(1) });
+      }
+    });
+
+    // Toggle comment input
+    document.addEventListener("click", (e) => {
+      if (e.target.classList.contains("commentBtn")) {
+        const id = e.target.getAttribute("data-id");
+        const inputDiv = document.getElementById(`commentInput-${id}`);
+        inputDiv.classList.toggle("hidden");
+      }
+    });
+
+    // Submit comment
+    document.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("submitComment")) {
+        const id = e.target.getAttribute("data-id");
+        const input = document.getElementById(`commentText-${id}`);
+        const text = input.value.trim();
+        if (!text) return;
+
+        await addDoc(collection(db, "posts", id, "comments"), {
+          text,
+          user: auth.currentUser.email,
+          createdAt: serverTimestamp()
+        });
+
+        input.value = "";
       }
     });
 
     // Logout
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
-      window.location.href = "index.html";
-    });
-
-    // Menu toggle
-    menuBtn.addEventListener("click", () => {
-      menu.classList.toggle("hidden");
     });
 
     // Dark mode toggle
-    darkToggle.addEventListener("click", () => {
+    darkModeToggle.addEventListener("click", () => {
       document.body.classList.toggle("dark");
       document.body.classList.toggle("light");
-    });
-
-    // Open modal
-    addPostBtn.addEventListener("click", () => {
-      postModal.classList.remove("hidden");
-    });
-    closeModal.addEventListener("click", () => {
-      postModal.classList.add("hidden");
-    });
-
-    // Save post
-    savePost.addEventListener("click", async () => {
-      const text = document.getElementById("postText").value;
-      const image = document.getElementById("postImage").value;
-      if (!text) return;
-
-      const id = Date.now().toString();
-      await setDoc(doc(db, "posts", id), {
-        text,
-        image,
-        likes: 0,
-        createdAt: new Date().toISOString(),
-        user: auth.currentUser.email
-      });
-
-      postModal.classList.add("hidden");
-      document.getElementById("postText").value = "";
-      document.getElementById("postImage").value = "";
-    });
-
-    // Real-time posts
-    onSnapshot(doc(db, "posts", "dummy"), () => {}); // keep listener alive
-    onSnapshot(db.collection("posts"), (snapshot) => {
-      postsDiv.innerHTML = "";
-      snapshot.forEach((docSnap) => {
-        const post = docSnap.data();
-        const div = document.createElement("div");
-        div.className = "post";
-        div.innerHTML = `
-          <p>${post.text}</p>
-          ${post.image ? `<img src="${post.image}" alt="">` : ""}
-          <small>by ${post.user}</small>
-          <button onclick="likePost('${docSnap.id}')">❤️ ${post.likes}</button>
-          ${auth.currentUser.email === "abhayrangappanvat@gmail.com" ? 
-            `<button onclick="deletePost('${docSnap.id}')">🗑 Delete</button>` : ""}
-        `;
-        postsDiv.appendChild(div);
-      });
     });
   </script>
 </body>
