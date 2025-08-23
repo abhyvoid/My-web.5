@@ -1,237 +1,97 @@
-  <!DOCTYPE html>
+     <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Home | My Web</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>my web</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="light">
-  <!-- Sidebar -->
-  <div id="sidebar" class="sidebar">
-    <button id="closeMenu" class="close-btn">×</button>
-    <a href="https://instagram.com/abhay___r" target="_blank">Instagram</a>
-    <a href="https://snapchat.com/add/abhayr38" target="_blank">Snapchat</a>
-    <button id="logoutBtn" class="btn">Logout</button>
-    <div class="dark-toggle">
-      <label class="switch">
-        <input type="checkbox" id="darkModeToggle">
-        <span class="slider round"></span>
-      </label>
-      <span>Dark Mode</span>
-    </div>
-  </div>
-
-  <!-- Header -->
-  <header>
-    <button id="menuBtn" class="menu-btn">☰</button>
-    <h1>My Web</h1>
+<body class="theme">
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="brand">🌀 my web</div>
+    <button id="menuBtn" class="icon-btn" aria-label="menu">☰</button>
   </header>
 
-  <!-- Feed -->
-  <main>
-    <div id="posts" class="posts"></div>
-    <p id="loading">Loading…</p>
+  <!-- Slideout Menu -->
+  <aside id="sideMenu" class="sidemenu">
+    <button id="closeMenu" class="icon-btn close">✕</button>
+    <div class="menu-section">
+      <div class="menu-title">Account</div>
+      <div id="profileRow" class="profile-row hidden">
+        <div id="profileEmail" class="muted"></div>
+      </div>
+
+      <button id="loginOpen" class="menu-btn">Log in</button>
+      <button id="logoutBtn" class="menu-btn danger hidden">Log out</button>
+    </div>
+
+    <div class="menu-section">
+      <div class="menu-title">Appearance</div>
+      <label class="toggle">
+        <input id="themeToggle" type="checkbox" />
+        <span class="slider"></span>
+        <span class="toggle-label">Dark mode</span>
+      </label>
+    </div>
+  </aside>
+  <div id="sideMask" class="sidemask"></div>
+
+  <!-- Content -->
+  <main class="container">
+    <!-- Add (+) button -> opens editor (only when logged in) -->
+    <button id="addBtn" class="fab" title="Add post">＋</button>
+
+    <!-- Posts feed -->
+    <section id="feed" class="feed"></section>
+
+    <!-- Empty state -->
+    <div id="emptyState" class="empty hidden">No posts yet</div>
   </main>
 
-  <!-- Floating add button (admin only) -->
-  <button id="addPostBtn" class="fab">＋</button>
-
-  <!-- Add post modal -->
-  <div id="postModal" class="modal">
-    <div class="modal-content">
-      <h2>New Post</h2>
-      <textarea id="postText" placeholder="Write something..."></textarea>
-      <input type="file" id="postImage" accept="image/*" />
-      <button id="submitPost" class="btn">Post</button>
-      <button id="cancelPost" class="btn secondary">Cancel</button>
+  <!-- Editor Modal -->
+  <div id="editorMask" class="modal-mask"></div>
+  <section id="editor" class="modal">
+    <header class="modal-head">
+      <h3>Create post</h3>
+      <button id="editorClose" class="icon-btn">✕</button>
+    </header>
+    <div class="modal-body">
+      <textarea id="postText" rows="4" placeholder="What's on your mind?"></textarea>
+      <label class="file">
+        <input id="postImage" type="file" accept="image/*" />
+        <span>Choose image</span>
+      </label>
+      <div id="editorError" class="error"></div>
     </div>
-  </div>
+    <footer class="modal-foot">
+      <button id="postSubmit" class="primary">Post</button>
+    </footer>
+  </section>
 
-  <script type="module">
-    import {
-      auth, onAuthStateChanged, signOut,
-      db, collection, addDoc, deleteDoc, doc, onSnapshot,
-      updateDoc, arrayUnion, arrayRemove, query, orderBy, serverTimestamp,
-      storage, storageRef, uploadBytes, getDownloadURL, deleteObject
-    } from "./firebase.js";
+  <!-- Auth Modal -->
+  <div id="authMask" class="modal-mask"></div>
+  <section id="authModal" class="modal small">
+    <header class="modal-head">
+      <h3>Log in</h3>
+      <button id="authClose" class="icon-btn">✕</button>
+    </header>
+    <div class="modal-body">
+      <input id="authEmail" type="email" placeholder="email" />
+      <input id="authPassword" type="password" placeholder="password" />
+      <div id="authError" class="error"></div>
+      <div class="row space-between">
+        <label class="checkbox"><input id="authNew" type="checkbox" /> Create new account</label>
+      </div>
+    </div>
+    <footer class="modal-foot">
+      <button id="authSubmit" class="primary">Continue</button>
+    </footer>
+  </section>
 
-    const adminEmail = "abhayrangappanvat@gmail.com";
-
-    const postsDiv = document.getElementById("posts");
-    const loading = document.getElementById("loading");
-    const addPostBtn = document.getElementById("addPostBtn");
-    const modal = document.getElementById("postModal");
-    const postText = document.getElementById("postText");
-    const postImage = document.getElementById("postImage");
-    const submitPost = document.getElementById("submitPost");
-    const cancelPost = document.getElementById("cancelPost");
-    const logoutBtn = document.getElementById("logoutBtn");
-
-    const menuBtn = document.getElementById("menuBtn");
-    const sidebar = document.getElementById("sidebar");
-    const closeMenu = document.getElementById("closeMenu");
-    const darkToggle = document.getElementById("darkModeToggle");
-
-    let currentUser = null;
-
-    // Auth state
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-        return;
-      }
-      currentUser = user;
-
-      // Show add button only if admin
-      addPostBtn.style.display = (user.email === adminEmail) ? "block" : "none";
-
-      loadPosts();
-    });
-
-    // Load posts
-    function loadPosts() {
-      const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-      onSnapshot(q, (snapshot) => {
-        postsDiv.innerHTML = "";
-        snapshot.forEach((docSnap) => {
-          const post = docSnap.data();
-          const postId = docSnap.id;
-
-          const postEl = document.createElement("div");
-          postEl.className = "post";
-
-          let html = `<p>${post.text || ""}</p>`;
-          if (post.imageUrl) {
-            html += `<img src="${post.imageUrl}" alt="post image" />`;
-          }
-
-          // Likes
-          const liked = post.likes?.includes(currentUser.uid);
-          const likeCount = post.likes?.length || 0;
-
-          html += `
-            <button class="like-btn" data-id="${postId}">${liked ? "❤️" : "🤍"} ${likeCount}</button>
-          `;
-
-          // Comments
-          html += `<div class="comments" id="comments-${postId}"></div>
-                   <input type="text" placeholder="Write a comment..." class="comment-input" data-id="${postId}" />`;
-
-          // Delete (admin only)
-          if (currentUser.email === adminEmail) {
-            html += `<button class="delete-btn" data-id="${postId}" data-url="${post.imagePath || ""}">🗑️ Delete</button>`;
-          }
-
-          postEl.innerHTML = html;
-          postsDiv.appendChild(postEl);
-
-          // Realtime comments
-          const commentsDiv = postEl.querySelector(`#comments-${postId}`);
-          onSnapshot(collection(db, "posts", postId, "comments"), (commSnap) => {
-            commentsDiv.innerHTML = "";
-            commSnap.forEach((c) => {
-              const data = c.data();
-              commentsDiv.innerHTML += `<p><b>${data.author}</b>: ${data.text}</p>`;
-            });
-          });
-        });
-        loading.style.display = "none";
-      });
-    }
-
-    // Add post modal
-    addPostBtn.addEventListener("click", () => modal.style.display = "flex");
-    cancelPost.addEventListener("click", () => modal.style.display = "none");
-
-    submitPost.addEventListener("click", async () => {
-      const text = postText.value.trim();
-      const file = postImage.files[0];
-      let imageUrl = "", imagePath = "";
-
-      if (file) {
-        const path = `posts/${currentUser.uid}/${Date.now()}-${file.name}`;
-        const ref = storageRef(storage, path);
-        await uploadBytes(ref, file);
-        imageUrl = await getDownloadURL(ref);
-        imagePath = path;
-      }
-
-      await addDoc(collection(db, "posts"), {
-        text,
-        imageUrl,
-        imagePath,
-        likes: [],
-        createdAt: serverTimestamp()
-      });
-
-      postText.value = "";
-      postImage.value = "";
-      modal.style.display = "none";
-    });
-
-    // Likes
-    postsDiv.addEventListener("click", async (e) => {
-      if (e.target.classList.contains("like-btn")) {
-        const id = e.target.dataset.id;
-        const ref = doc(db, "posts", id);
-        const liked = e.target.textContent.includes("❤️");
-        await updateDoc(ref, {
-          likes: liked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
-        });
-      }
-    });
-
-    // Comments
-    postsDiv.addEventListener("keypress", async (e) => {
-      if (e.target.classList.contains("comment-input") && e.key === "Enter") {
-        const id = e.target.dataset.id;
-        const text = e.target.value.trim();
-        if (!text) return;
-        await addDoc(collection(db, "posts", id, "comments"), {
-          text,
-          author: currentUser.displayName,
-          createdAt: serverTimestamp()
-        });
-        e.target.value = "";
-      }
-    });
-
-    // Delete
-    postsDiv.addEventListener("click", async (e) => {
-      if (e.target.classList.contains("delete-btn")) {
-        const id = e.target.dataset.id;
-        const path = e.target.dataset.url;
-        await deleteDoc(doc(db, "posts", id));
-        if (path) {
-          await deleteObject(storageRef(storage, path)).catch(() => {});
-        }
-      }
-    });
-
-    // Sidebar
-    menuBtn.addEventListener("click", () => sidebar.style.left = "0");
-    closeMenu.addEventListener("click", () => sidebar.style.left = "-250px");
-    logoutBtn.addEventListener("click", async () => {
-      await signOut(auth);
-      window.location.href = "index.html";
-    });
-
-    // Dark mode
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-      document.body.classList.replace("light", "dark");
-      darkToggle.checked = true;
-    }
-    darkToggle.addEventListener("change", () => {
-      if (darkToggle.checked) {
-        document.body.classList.replace("light", "dark");
-        localStorage.setItem("theme", "dark");
-      } else {
-        document.body.classList.replace("dark", "light");
-        localStorage.setItem("theme", "light");
-      }
-    });
-  </script>
+  <!-- Supabase client (you already created this file) -->
+  <script src="supabase.js"></script>
+  <script src="app.js" type="module"></script>
 </body>
-</html>      
+</html> 
+      
