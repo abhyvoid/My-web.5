@@ -1,40 +1,22 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Login • My Web</title>
-<link rel="stylesheet" href="style.css" />
-<script type="module">
-  import { auth, onAuthStateChanged, signInWithEmailAndPassword } from './firebase.js';
-
-  // If already logged in, go to home
-  onAuthStateChanged(auth, (user) => {
-    if (user) location.replace('home.html');
-  });
-
-  window.handleLogin = async () => {
-    const email = document.getElementById('email').value.trim();
-    const pass  = document.getElementById('password').value.trim();
-    const btn   = document.getElementById('loginBtn');
-    if (!email || !pass) { alert("Enter email and password."); return; }
-    btn.disabled = true;
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-      // onAuthStateChanged will redirect
-    } catch (e) {
-      alert(e.message.replace("Firebase:", "").trim());
-      btn.disabled = false;
-    }
-  };
-</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - My Web🎭</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="auth-body">
-  <div class="card auth-card">
-    <h1 class="title">Sign in</h1>
-    <input id="email" type="email" placeholder="Email" class="input"/>
-    <input id="password" type="password" placeholder="Password" class="input"/>
-    <button id="loginBtn" class="btn primary" onclick="handleLogin()">Login</button>
+<body class="light">
+  <div class="login-container">
+    <h1>Login</h1>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="error" class="error"></p>
   </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
