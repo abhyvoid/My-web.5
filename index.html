@@ -7,17 +7,28 @@
 </head>
 <body class="light">
   <div class="login-container">
-    <h2>Login / Sign Up</h2>
+    <h2>my-web20</h2>
+
+    <!-- Email -->
     <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password" minlength="6">
-    <div class="btn-group">
-      <button id="login-btn">Login</button>
-      <button id="signup-btn">Sign Up</button>
+
+    <!-- Password with show/hide -->
+    <div class="password-wrapper">
+      <input type="password" id="password" placeholder="Password" minlength="6">
+      <button id="toggle-password" class="circle-btn"></button>
     </div>
+
+    <!-- Buttons -->
+    <div class="btn-group">
+      <button id="login-btn" class="btn green">Login</button>
+      <button id="signup-btn" class="btn white">Sign Up</button>
+    </div>
+
+    <!-- Error Message -->
     <p id="error-msg" class="error"></p>
   </div>
 
-  <!-- Load Supabase before app.js -->
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="supabase.js"></script>
   <script src="app.js"></script>
