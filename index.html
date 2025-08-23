@@ -1,20 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Login</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login • my-web🎭</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body class="light">
-  <div class="login-container">
-    <h2>Login</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button id="login-btn">Login</button>
-    <p id="error-msg" class="error"></p>
-  </div>
+<body class="theme-dark">
+  <main class="screen full-center login-bg">
+    <section class="card login-card">
+      <h1 class="brand">my-web🎭</h1>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+      <label class="input">
+        <input type="email" id="email" placeholder="Email" autocomplete="username" />
+      </label>
+
+      <label class="input with-action">
+        <input type="password" id="password" placeholder="Password" autocomplete="current-password" />
+        <button class="circle-toggle" id="toggle-pass" aria-label="Show/Hide password"></button>
+      </label>
+
+      <button id="login-btn" class="btn btn-green">Login</button>
+      <button id="signup-btn" class="btn btn-white">Sign up</button>
+
+      <p id="error-msg" class="error"></p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase.js"></script>
   <script src="app.js"></script>
 </body>
