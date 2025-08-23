@@ -1,97 +1,46 @@
-     <!doctype html>
+   <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>my web</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Web🎭</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="theme">
+<body class="light">
   <!-- Top Bar -->
-  <header class="topbar">
-    <div class="brand">🌀 my web</div>
-    <button id="menuBtn" class="icon-btn" aria-label="menu">☰</button>
+  <header>
+    <h1>My Web</h1>
+    <button id="menuBtn">☰</button>
   </header>
 
-  <!-- Slideout Menu -->
-  <aside id="sideMenu" class="sidemenu">
-    <button id="closeMenu" class="icon-btn close">✕</button>
-    <div class="menu-section">
-      <div class="menu-title">Account</div>
-      <div id="profileRow" class="profile-row hidden">
-        <div id="profileEmail" class="muted"></div>
-      </div>
+  <!-- Side Menu -->
+  <aside id="sideMenu" class="hidden">
+    <p><b>my id:</b> abhay___r</p>
+    <p><b>my snap:</b> abhayr38</p>
+    <button onclick="logout()">Logout</button>
 
-      <button id="loginOpen" class="menu-btn">Log in</button>
-      <button id="logoutBtn" class="menu-btn danger hidden">Log out</button>
-    </div>
-
-    <div class="menu-section">
-      <div class="menu-title">Appearance</div>
-      <label class="toggle">
-        <input id="themeToggle" type="checkbox" />
-        <span class="slider"></span>
-        <span class="toggle-label">Dark mode</span>
-      </label>
-    </div>
+    <label class="switch">
+      <input type="checkbox" id="darkToggle">
+      <span class="slider"></span>
+    </label>
   </aside>
-  <div id="sideMask" class="sidemask"></div>
 
-  <!-- Content -->
-  <main class="container">
-    <!-- Add (+) button -> opens editor (only when logged in) -->
-    <button id="addBtn" class="fab" title="Add post">＋</button>
+  <!-- Posts Section -->
+  <main id="postsContainer"></main>
 
-    <!-- Posts feed -->
-    <section id="feed" class="feed"></section>
-
-    <!-- Empty state -->
-    <div id="emptyState" class="empty hidden">No posts yet</div>
-  </main>
+  <!-- Floating Add Button -->
+  <button id="addBtn" class="fab">＋</button>
 
   <!-- Editor Modal -->
-  <div id="editorMask" class="modal-mask"></div>
-  <section id="editor" class="modal">
-    <header class="modal-head">
-      <h3>Create post</h3>
-      <button id="editorClose" class="icon-btn">✕</button>
-    </header>
-    <div class="modal-body">
-      <textarea id="postText" rows="4" placeholder="What's on your mind?"></textarea>
-      <label class="file">
-        <input id="postImage" type="file" accept="image/*" />
-        <span>Choose image</span>
-      </label>
-      <div id="editorError" class="error"></div>
-    </div>
-    <footer class="modal-foot">
-      <button id="postSubmit" class="primary">Post</button>
-    </footer>
-  </section>
+  <div id="editorModal" class="modal hidden">
+    <textarea id="postText" placeholder="Write something..."></textarea>
+    <input type="file" id="postImage">
+    <button onclick="createPost()">Post</button>
+    <button onclick="closeEditor()">Close</button>
+  </div>
 
-  <!-- Auth Modal -->
-  <div id="authMask" class="modal-mask"></div>
-  <section id="authModal" class="modal small">
-    <header class="modal-head">
-      <h3>Log in</h3>
-      <button id="authClose" class="icon-btn">✕</button>
-    </header>
-    <div class="modal-body">
-      <input id="authEmail" type="email" placeholder="email" />
-      <input id="authPassword" type="password" placeholder="password" />
-      <div id="authError" class="error"></div>
-      <div class="row space-between">
-        <label class="checkbox"><input id="authNew" type="checkbox" /> Create new account</label>
-      </div>
-    </div>
-    <footer class="modal-foot">
-      <button id="authSubmit" class="primary">Continue</button>
-    </footer>
-  </section>
-
-  <!-- Supabase client (you already created this file) -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
   <script src="supabase.js"></script>
-  <script src="app.js" type="module"></script>
+  <script src="app.js"></script>
 </body>
-</html> 
-      
+</html>      
