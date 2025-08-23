@@ -1,46 +1,70 @@
    <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Web🎭</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Home • my-web🎭</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body class="light">
-  <!-- Top Bar -->
-  <header>
-    <h1>My Web</h1>
-    <button id="menuBtn">☰</button>
+<body class="theme-light">
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="title">my-web🎭</div>
+    <button id="menu-btn" class="hamburger" aria-label="Open menu"></button>
   </header>
 
-  <!-- Side Menu -->
-  <aside id="sideMenu" class="hidden">
-    <p><b>my id:</b> abhay___r</p>
-    <p><b>my snap:</b> abhayr38</p>
-    <button onclick="logout()">Logout</button>
+  <!-- Slide-out side menu -->
+  <aside id="side-menu" class="side-menu">
+    <div class="side-inner">
+      <div class="fixed-info">
+        <p><strong>my id:</strong> abhay___r</p>
+        <p><strong>my snap:</strong> abhayr38</p>
+      </div>
 
-    <label class="switch">
-      <input type="checkbox" id="darkToggle">
-      <span class="slider"></span>
-    </label>
+      <button id="logout-btn" class="btn btn-white w-100">Logout</button>
+
+      <div class="toggle-row">
+        <span>Dark mode</span>
+        <button id="theme-toggle" class="switch">
+          <span class="knob"></span>
+        </button>
+      </div>
+    </div>
   </aside>
 
-  <!-- Posts Section -->
-  <main id="postsContainer"></main>
+  <!-- Content -->
+  <main class="content">
+    <ul id="posts" class="post-list"></ul>
+  </main>
 
-  <!-- Floating Add Button -->
-  <button id="addBtn" class="fab">＋</button>
+  <!-- Floating + (admin only) -->
+  <button id="fab" class="fab" title="Add post">+</button>
 
-  <!-- Editor Modal -->
-  <div id="editorModal" class="modal hidden">
-    <textarea id="postText" placeholder="Write something..."></textarea>
-    <input type="file" id="postImage">
-    <button onclick="createPost()">Post</button>
-    <button onclick="closeEditor()">Close</button>
+  <!-- Editor panel (admin only) -->
+  <div id="editor" class="sheet">
+    <div class="sheet-inner">
+      <h3>New Post</h3>
+      <div class="editor-preview" id="img-preview"></div>
+
+      <label class="file">
+        <input type="file" id="image-input" accept="image/*" />
+        <span>Choose file</span>
+      </label>
+
+      <label class="input">
+        <textarea id="post-text" rows="4" placeholder="Write something..."></textarea>
+      </label>
+
+      <div class="row gap">
+        <button id="post-submit" class="btn btn-green w-100">Post</button>
+        <button id="post-cancel" class="btn btn-white w-100">Cancel</button>
+      </div>
+      <p id="post-error" class="error"></p>
+    </div>
   </div>
 
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase.js"></script>
   <script src="app.js"></script>
 </body>
-</html>      
+</html>
