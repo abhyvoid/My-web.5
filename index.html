@@ -1,36 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Login</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login / Sign Up</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body class="light">
-  <div class="login-container">
-    <h2>my-web20</h2>
+<body class="dark-bg">
+  <header class="top-strip">my-web🪄</header>
 
-    <!-- Email -->
-    <input type="email" id="email" placeholder="Email">
+  <main class="center-wrap">
+    <section class="auth-card">
+      <h1 class="app-title">my-web20</h1>
 
-    <!-- Password with show/hide -->
-    <div class="password-wrapper">
-      <input type="password" id="password" placeholder="Password" minlength="6">
-      <button id="toggle-password" class="circle-btn"></button>
-    </div>
+      <label class="field">
+        <input id="email" type="email" placeholder="Email" autocomplete="email" />
+      </label>
 
-    <!-- Buttons -->
-    <div class="btn-group">
-      <button id="login-btn" class="btn green">Login</button>
-      <button id="signup-btn" class="btn white">Sign Up</button>
-    </div>
+      <label class="field pass-field">
+        <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+        <button id="toggle-pass" class="circle-toggle" aria-label="Show/Hide password"></button>
+      </label>
 
-    <!-- Error Message -->
-    <p id="error-msg" class="error"></p>
-  </div>
+      <div class="actions">
+        <button id="login-btn" class="btn btn-green">Login</button>
+        <button id="signup-btn" class="btn btn-white">Sign Up</button>
+      </div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+      <p id="auth-msg" class="msg"></p>
+    </section>
+  </main>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Your connection file (kept separate) -->
   <script src="supabase.js"></script>
+  <!-- App logic shared by both pages -->
   <script src="app.js"></script>
 </body>
 </html>
